@@ -1,4 +1,5 @@
 import getSettings from '../settings';
+import getWaniKaniData from '../../util';
 
 export interface WordEntries {
   [key: string]: {
@@ -16,19 +17,27 @@ const FILES = [
 ];
 
 const getData = async () : Promise<WordEntries> => {
-  let data = {};
-  const settings = await getSettings();
-  const requestedFiles = FILES.filter((file) => settings[file]);
 
-  const appendData = async (file: string) => {
-    const response = await fetch(chrome.runtime.getURL(file + EXTENSION));
-    const newData = await response.json();
-    data = { ...data, ...newData };
-  };
+  let wanidata = await getWaniKaniData();
 
-  await Promise.all(requestedFiles.map((file) => appendData(file)));
+  if (Object.keys(wanidata).length != 0) {
+    return wanidata;
+  } else {
+    console.log("failed to retrieve wanikani data, fallback to genki");
+    let data = {};
+    const settings = await getSettings();
+    const requestedFiles = FILES.filter((file) => settings[file]);
 
-  return data;
+    const appendData = async (file: string) => {
+      const response = await fetch(chrome.runtime.getURL(file + EXTENSION));
+      const newData = await response.json();
+      data = { ...data, ...newData };
+    };
+
+    await Promise.all(requestedFiles.map((file) => appendData(file)));
+
+    return data;
+  }
 };
 
 export default getData;

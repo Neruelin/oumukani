@@ -7,7 +7,7 @@ const { version } = require('./package.json');
 const OUTPUT_DIR = './extension';
 
 const manifest = {
-  manifest_version: 2,
+  manifest_version: 3,
   name: 'Oumu',
   version,
   description: 'Oumu helps you learn Japanese by replacing words on websites',
@@ -22,11 +22,18 @@ const manifest = {
       css: ['content.css'],
     },
   ],
-  web_accessible_resources: ['*.json'],
+  web_accessible_resources: [
+    {
+      "matches": ["<all_urls>"], "resources": ["*.json"]
+    }
+  ],
   icons: {
     48: '48-icon.png',
     128: '128-icon.png',
   },
+  options_ui: {
+    page: "options.html"
+  }
 };
 
 const prepareContent = async () => {
@@ -48,6 +55,13 @@ const prepareContent = async () => {
         bundle: true,
         minify: true,
         outfile: `${OUTPUT_DIR}/content.js`,
+        plugins: [sassPlugin()],
+      }),
+      esbuild.build({
+        entryPoints: ['./src/options.ts'],
+        bundle: true,
+        minify: true,
+        outfile: `${OUTPUT_DIR}/options.js`,
         plugins: [sassPlugin()],
       }),
     ]);
